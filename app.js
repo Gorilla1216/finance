@@ -18,6 +18,26 @@ var uiController = (function () {
     getDOMstrings: function () {
       return DOMsrtings;
     },
+
+    addListItem: function (item, type) {
+      //income, expense htmls are prepared
+      var html, list;
+      if (type === "inc") {
+        list = ".income__list";
+        html =
+          '<div class="item clearfix" id="income-%id%"><div class="item__description">$Description$</div><div class="right clearfix"><div class="item__value">$Value$</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div>';
+      } else {
+        list = ".expenses__list";
+        html =
+          '<div class="item clearfix" id="expense-%id%"><div class="item__description">$Description$</div><div class="right clearfix"><div class="item__value">$Value$</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+      }
+      //income, expenses are replaced by REPLACE cmd in the hmtl
+      html = html.replace("%id%", item.id);
+      html = html.replace("$Description$", item.description);
+      html = html.replace("$Value$", item.value);
+      //prepared html --> DOM
+      document.querySelector(list).insertAdjacentHTML("beforeend", html);
+    },
   };
 })();
 
@@ -33,7 +53,7 @@ var financeController = (function () {
     this.value = value;
   };
   var data = {
-    allItems: {
+    items: {
       inc: [],
       exp: [],
     },
@@ -42,16 +62,43 @@ var financeController = (function () {
       exp: 0,
     },
   };
+  return {
+    addItem: function (type, desc, val) {
+      var item, id;
+
+      if (data.items[type].length === 0) id = 1;
+      else {
+        data.items[type][data.items[type].length - 1].id + 1;
+      }
+
+      if (type === "inc") {
+        item = new Income(id, desc, val);
+      } else {
+        item = new Expense(id, desc, val);
+      }
+      data.items[type].push(item);
+
+      return item;
+    },
+    seeData: function () {
+      return data;
+    },
+  };
 })();
 
 var appController = (function (uiController, financeController) {
-  var DOM = uiController.getDOMstrings();
-
   var ctrlAddItem = function () {
-    console.log(uiController.getInput());
+    var input = uiController.getInput();
+
     //get data from uictrl
     //data from uictrl --> financecontroller, save them there
+    var item = financeController.addItem(
+      input.type,
+      input.description,
+      input.value
+    );
     //data is presented in suitable section of web
+    uiController.addListItem(item, input.type);
     //calculate the finance
     //and presented it on web (remaining, calculation)
   };
